@@ -576,6 +576,7 @@ const makeKimiAdapter = Effect.fn("makeKimiAdapter")(function* (options?: KimiAd
         yield* emitTurnStarted(context, newTurnId);
         if (context.pendingPlanMode !== undefined) {
           const targetPlanMode = context.pendingPlanMode;
+          context.planModeActive = targetPlanMode;
           context.pendingPlanMode = undefined;
           if (context.sdkSession.planMode !== targetPlanMode) {
             yield* Effect.tryPromise({
@@ -774,6 +775,19 @@ const makeKimiAdapter = Effect.fn("makeKimiAdapter")(function* (options?: KimiAd
 
       case "QuestionRequest": {
         if (!turnId) break;
+        if (context.planModeActive) {
+          const { eventId: planEventId, createdAt: planCreatedAt } = yield* makeEventStamp();
+          yield* offerRuntimeEvent({
+            type: "turn.proposed.completed",
+            eventId: planEventId,
+            provider: PROVIDER,
+            createdAt: planCreatedAt,
+            threadId,
+            turnId,
+            payload: { planMarkdown: "" },
+            providerRefs: {},
+          });
+        }
         const requestId = ApprovalRequestId.make(event.payload.id);
         const questions: Array<UserInputQuestion> = event.payload.questions.map((q) => ({
           id: q.question,
