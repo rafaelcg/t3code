@@ -467,6 +467,9 @@ function summarizeToolRequest(toolName: string, input: Record<string, unknown>):
   }
 
   const serialized = JSON.stringify(input);
+  if (serialized === "{}") {
+    return toolName;
+  }
   if (serialized.length <= 400) {
     return `${toolName}: ${serialized}`;
   }

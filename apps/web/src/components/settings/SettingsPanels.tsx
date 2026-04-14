@@ -124,6 +124,12 @@ const PROVIDER_SETTINGS: readonly InstallProviderSettings[] = [
     binaryPlaceholder: "Claude binary path",
     binaryDescription: "Path to the Claude binary",
   },
+  {
+    provider: "kimi",
+    title: "Kimi",
+    binaryPlaceholder: "Kimi binary path",
+    binaryDescription: "Path to the Kimi binary",
+  },
 ] as const;
 
 const PROVIDER_STATUS_STYLES = {
@@ -442,12 +448,17 @@ export function GeneralSettingsPanel() {
         DEFAULT_UNIFIED_SETTINGS.providers.claudeAgent.binaryPath ||
       settings.providers.claudeAgent.customModels.length > 0,
     ),
+    kimi: Boolean(
+      settings.providers.kimi.binaryPath !== DEFAULT_UNIFIED_SETTINGS.providers.kimi.binaryPath ||
+      settings.providers.kimi.customModels.length > 0,
+    ),
   });
   const [customModelInputByProvider, setCustomModelInputByProvider] = useState<
     Record<ProviderKind, string>
   >({
     codex: "",
     claudeAgent: "",
+    kimi: "",
   });
   const [customModelErrorByProvider, setCustomModelErrorByProvider] = useState<
     Partial<Record<ProviderKind, string | null>>

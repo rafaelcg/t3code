@@ -91,7 +91,7 @@ function resetComposerDraftStore() {
 }
 
 function modelSelection(
-  provider: "codex" | "claudeAgent",
+  provider: "codex" | "claudeAgent" | "kimi",
   model: string,
   options?: ModelSelection["options"],
 ): ModelSelection {

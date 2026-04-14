@@ -12,6 +12,7 @@ import { TraitsMenuContent, TraitsPicker } from "./TraitsPicker";
 import {
   normalizeClaudeModelOptionsWithCapabilities,
   normalizeCodexModelOptionsWithCapabilities,
+  normalizeKimiModelOptionsWithCapabilities,
 } from "@t3tools/shared/model";
 
 export type ComposerProviderStateInput = {
@@ -82,7 +83,9 @@ function getProviderStateFromCapabilities(
   const normalizedOptions =
     provider === "codex"
       ? normalizeCodexModelOptionsWithCapabilities(caps, providerOptions)
-      : normalizeClaudeModelOptionsWithCapabilities(caps, providerOptions);
+      : provider === "claudeAgent"
+        ? normalizeClaudeModelOptionsWithCapabilities(caps, providerOptions)
+        : normalizeKimiModelOptionsWithCapabilities(caps, providerOptions);
 
   // Ultrathink styling (driven by capabilities data, not provider identity)
   const ultrathinkActive =
@@ -181,6 +184,51 @@ const composerProviderRegistry: Record<ProviderKind, ProviderRegistryEntry> = {
       !hasComposerTraitsTarget({ threadRef, draftId }) ? null : (
         <TraitsPicker
           provider="claudeAgent"
+          models={models}
+          {...(threadRef ? { threadRef } : {})}
+          {...(draftId ? { draftId } : {})}
+          model={model}
+          modelOptions={modelOptions}
+          prompt={prompt}
+          onPromptChange={onPromptChange}
+        />
+      ),
+  },
+  kimi: {
+    getState: (input) => getProviderStateFromCapabilities(input),
+    renderTraitsMenuContent: ({
+      threadRef,
+      draftId,
+      model,
+      models,
+      modelOptions,
+      prompt,
+      onPromptChange,
+    }) =>
+      !hasComposerTraitsTarget({ threadRef, draftId }) ? null : (
+        <TraitsMenuContent
+          provider="kimi"
+          models={models}
+          {...(threadRef ? { threadRef } : {})}
+          {...(draftId ? { draftId } : {})}
+          model={model}
+          modelOptions={modelOptions}
+          prompt={prompt}
+          onPromptChange={onPromptChange}
+        />
+      ),
+    renderTraitsPicker: ({
+      threadRef,
+      draftId,
+      model,
+      models,
+      modelOptions,
+      prompt,
+      onPromptChange,
+    }) =>
+      !hasComposerTraitsTarget({ threadRef, draftId }) ? null : (
+        <TraitsPicker
+          provider="kimi"
           models={models}
           {...(threadRef ? { threadRef } : {})}
           {...(draftId ? { draftId } : {})}

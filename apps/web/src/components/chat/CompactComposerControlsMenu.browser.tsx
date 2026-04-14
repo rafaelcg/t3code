@@ -122,6 +122,7 @@ async function mountMenu(props?: { modelSelection?: ModelSelection; prompt?: str
   const screen = await render(
     <CompactComposerControlsMenu
       activePlan={false}
+      provider={provider}
       interactionMode="default"
       planSidebarOpen={false}
       runtimeMode="approval-required"

@@ -45,6 +45,13 @@ const PROVIDER_CUSTOM_MODEL_CONFIG: Record<ProviderKind, ProviderCustomModelConf
     placeholder: "your-claude-model-slug",
     example: "claude-sonnet-5-0",
   },
+  kimi: {
+    provider: "kimi",
+    title: "Kimi",
+    description: "Save additional Kimi model slugs for the picker and `/model` command.",
+    placeholder: "your-kimi-model-slug",
+    example: "kimi-k2.5-pro",
+  },
 };
 
 export const MODEL_PROVIDER_SETTINGS = Object.values(PROVIDER_CUSTOM_MODEL_CONFIG);
@@ -164,6 +171,12 @@ export function getCustomModelOptionsByProvider(
       providers,
       "claudeAgent",
       selectedProvider === "claudeAgent" ? selectedModel : undefined,
+    ),
+    kimi: getAppModelOptions(
+      settings,
+      providers,
+      "kimi",
+      selectedProvider === "kimi" ? selectedModel : undefined,
     ),
   };
 }

@@ -1,6 +1,7 @@
 import {
   type ChatAttachment,
   CommandId,
+  DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER,
   EventId,
   type ModelSelection,
   type OrchestrationEvent,
@@ -469,16 +470,49 @@ const make = Effect.gen(function* () {
     }) {
       const attachments = input.attachments ?? [];
       yield* Effect.gen(function* () {
-        const { textGenerationModelSelection: modelSelection } =
-          yield* serverSettingsService.getSettings;
+        const settings = yield* serverSettingsService.getSettings;
+        const primary = settings.textGenerationModelSelection;
 
-        const generated = yield* textGeneration.generateThreadTitle({
-          cwd: input.cwd,
-          message: input.messageText,
-          ...(attachments.length > 0 ? { attachments } : {}),
-          modelSelection,
-        });
-        if (!generated) return;
+        // Build fallback candidates (excluding Kimi, which has no CLI text generation).
+        const candidates: Array<ModelSelection> = [primary];
+        const otherProviders: Array<ProviderKind> = ["codex", "claudeAgent"];
+        for (const provider of otherProviders) {
+          if (provider === primary.provider) continue;
+          if (settings.providers[provider]?.enabled) {
+            candidates.push({
+              provider,
+              model: DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER[provider],
+            } as ModelSelection);
+          }
+        }
+
+        let generated: { title: string } | undefined;
+        let lastCause: Cause.Cause<unknown> | undefined;
+        for (const modelSelection of candidates) {
+          const result = yield* Effect.exit(
+            textGeneration.generateThreadTitle({
+              cwd: input.cwd,
+              message: input.messageText,
+              ...(attachments.length > 0 ? { attachments } : {}),
+              modelSelection,
+            }),
+          );
+          if (result._tag === "Success") {
+            generated = result.value;
+            break;
+          }
+          lastCause = result.cause;
+        }
+
+        if (!generated) {
+          return yield* Effect.die(
+            new Error(
+              lastCause
+                ? `All text generation providers failed: ${Cause.pretty(lastCause)}`
+                : "No text generation provider succeeded",
+            ),
+          );
+        }
 
         const thread = yield* resolveThread(input.threadId);
         if (!thread) return;

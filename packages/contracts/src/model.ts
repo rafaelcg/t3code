@@ -22,9 +22,16 @@ export const ClaudeModelOptions = Schema.Struct({
 });
 export type ClaudeModelOptions = typeof ClaudeModelOptions.Type;
 
+export const KimiModelOptions = Schema.Struct({
+  thinking: Schema.optional(Schema.Boolean),
+  fastMode: Schema.optional(Schema.Boolean),
+});
+export type KimiModelOptions = typeof KimiModelOptions.Type;
+
 export const ProviderModelOptions = Schema.Struct({
   codex: Schema.optional(CodexModelOptions),
   claudeAgent: Schema.optional(ClaudeModelOptions),
+  kimi: Schema.optional(KimiModelOptions),
 });
 export type ProviderModelOptions = typeof ProviderModelOptions.Type;
 
@@ -54,6 +61,7 @@ export type ModelCapabilities = typeof ModelCapabilities.Type;
 export const DEFAULT_MODEL_BY_PROVIDER: Record<ProviderKind, string> = {
   codex: "gpt-5.4",
   claudeAgent: "claude-sonnet-4-6",
+  kimi: "kimi-code/kimi-for-coding",
 };
 
 export const DEFAULT_MODEL = DEFAULT_MODEL_BY_PROVIDER.codex;
@@ -62,6 +70,7 @@ export const DEFAULT_MODEL = DEFAULT_MODEL_BY_PROVIDER.codex;
 export const DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER: Record<ProviderKind, string> = {
   codex: "gpt-5.4-mini",
   claudeAgent: "claude-haiku-4-5",
+  kimi: "kimi-latest",
 };
 
 export const MODEL_SLUG_ALIASES_BY_PROVIDER: Record<ProviderKind, Record<string, string>> = {
@@ -80,12 +89,17 @@ export const MODEL_SLUG_ALIASES_BY_PROVIDER: Record<ProviderKind, Record<string,
     "claude-opus-4-6-20251117": "claude-opus-4-6",
     sonnet: "claude-sonnet-4-6",
     "sonnet-4.6": "claude-sonnet-4-6",
-    "claude-sonnet-4.6": "claude-sonnet-4-6",
+    "claude-sonnet-4-6": "claude-sonnet-4-6",
     "claude-sonnet-4-6-20251117": "claude-sonnet-4-6",
     haiku: "claude-haiku-4-5",
     "haiku-4.5": "claude-haiku-4-5",
-    "claude-haiku-4.5": "claude-haiku-4-5",
+    "claude-haiku-4-5": "claude-haiku-4-5",
     "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+  },
+  kimi: {
+    "kimi-k2.5": "kimi-k2.5",
+    k2: "kimi-k2.5",
+    "k2.5": "kimi-k2.5",
   },
 };
 
@@ -94,4 +108,5 @@ export const MODEL_SLUG_ALIASES_BY_PROVIDER: Record<ProviderKind, Record<string,
 export const PROVIDER_DISPLAY_NAMES: Record<ProviderKind, string> = {
   codex: "Codex",
   claudeAgent: "Claude",
+  kimi: "Kimi",
 };

@@ -159,6 +159,7 @@ const terminalContextIdListsEqual = (
   contexts.length === ids.length && contexts.every((context, index) => context.id === ids[index]);
 
 const ComposerFooterModeControls = memo(function ComposerFooterModeControls(props: {
+  provider: ProviderKind;
   interactionMode: ProviderInteractionMode;
   runtimeMode: RuntimeMode;
   showPlanToggle: boolean;
@@ -169,6 +170,10 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
 }) {
   const runtimeModeOption = runtimeModeConfig[props.runtimeMode];
   const RuntimeModeIcon = runtimeModeOption.icon;
+  const visibleRuntimeModes =
+    props.provider === "kimi"
+      ? (runtimeModeOptions.filter((m) => m !== "auto-accept-edits") as RuntimeMode[])
+      : runtimeModeOptions;
 
   return (
     <>
@@ -209,7 +214,7 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
           <SelectValue>{runtimeModeOption.label}</SelectValue>
         </SelectTrigger>
         <SelectPopup alignItemWithTrigger={false}>
-          {runtimeModeOptions.map((mode) => {
+          {visibleRuntimeModes.map((mode) => {
             const option = runtimeModeConfig[mode];
             const OptionIcon = option.icon;
             return (
@@ -597,6 +602,7 @@ export const ChatComposer = memo(
         codex: providerStatuses.find((provider) => provider.provider === "codex")?.models ?? [],
         claudeAgent:
           providerStatuses.find((provider) => provider.provider === "claudeAgent")?.models ?? [],
+        kimi: providerStatuses.find((provider) => provider.provider === "kimi")?.models ?? [],
       }),
       [providerStatuses],
     );
@@ -1922,6 +1928,7 @@ export const ChatComposer = memo(
                   {isComposerFooterCompact ? (
                     <CompactComposerControlsMenu
                       activePlan={showPlanSidebarToggle}
+                      provider={selectedProvider}
                       interactionMode={interactionMode}
                       planSidebarOpen={planSidebarOpen}
                       runtimeMode={runtimeMode}
@@ -1942,6 +1949,7 @@ export const ChatComposer = memo(
                         </>
                       ) : null}
                       <ComposerFooterModeControls
+                        provider={selectedProvider}
                         interactionMode={interactionMode}
                         runtimeMode={runtimeMode}
                         showPlanToggle={showPlanSidebarToggle}

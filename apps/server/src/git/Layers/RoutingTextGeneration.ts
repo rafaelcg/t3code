@@ -9,6 +9,8 @@
  *
  * @module RoutingTextGeneration
  */
+import { DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER } from "@t3tools/contracts";
+import type { ModelSelection } from "@t3tools/contracts";
 import { Effect, Layer, Context } from "effect";
 
 import {
@@ -42,12 +44,36 @@ const makeRoutingTextGeneration = Effect.gen(function* () {
   const route = (provider?: TextGenerationProvider): TextGenerationShape =>
     provider === "claudeAgent" ? claude : codex;
 
+  // Kimi does not have a text-generation CLI implementation yet;
+  // fall back to Codex and normalize the model selection so the
+  // underlying layer accepts it.
+  const normalizeModelSelection = (modelSelection: ModelSelection): ModelSelection => {
+    if (modelSelection.provider === "kimi") {
+      return {
+        provider: "codex",
+        model: modelSelection.model ?? DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER.codex,
+      } as ModelSelection;
+    }
+    return modelSelection;
+  };
+
   return {
-    generateCommitMessage: (input) =>
-      route(input.modelSelection.provider).generateCommitMessage(input),
-    generatePrContent: (input) => route(input.modelSelection.provider).generatePrContent(input),
-    generateBranchName: (input) => route(input.modelSelection.provider).generateBranchName(input),
-    generateThreadTitle: (input) => route(input.modelSelection.provider).generateThreadTitle(input),
+    generateCommitMessage: (input) => {
+      const modelSelection = normalizeModelSelection(input.modelSelection);
+      return route(modelSelection.provider).generateCommitMessage({ ...input, modelSelection });
+    },
+    generatePrContent: (input) => {
+      const modelSelection = normalizeModelSelection(input.modelSelection);
+      return route(modelSelection.provider).generatePrContent({ ...input, modelSelection });
+    },
+    generateBranchName: (input) => {
+      const modelSelection = normalizeModelSelection(input.modelSelection);
+      return route(modelSelection.provider).generateBranchName({ ...input, modelSelection });
+    },
+    generateThreadTitle: (input) => {
+      const modelSelection = normalizeModelSelection(input.modelSelection);
+      return route(modelSelection.provider).generateThreadTitle({ ...input, modelSelection });
+    },
   } satisfies TextGenerationShape;
 });
 

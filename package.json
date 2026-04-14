@@ -81,6 +81,9 @@
       "apps/web/public"
     ]
   },
+  "patchedDependencies": {
+    "@moonshot-ai/kimi-agent-sdk@0.1.8": "patches/@moonshot-ai%2Fkimi-agent-sdk@0.1.8.patch"
+  },
   "trustedDependencies": [
     "node-pty"
   ]

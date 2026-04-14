@@ -4,6 +4,7 @@ import {
   type ModelSelection,
   ClaudeModelOptions,
   CodexModelOptions,
+  KimiModelOptions,
   DEFAULT_MODEL_BY_PROVIDER,
   DEFAULT_SERVER_SETTINGS,
   EnvironmentId,
@@ -35,6 +36,9 @@ const CLAUDE_THREAD_KEY = scopedThreadKey(CLAUDE_THREAD_REF);
 const CODEX_THREAD_ID = ThreadId.make("thread-codex-traits");
 const CODEX_THREAD_REF = scopeThreadRef(LOCAL_ENVIRONMENT_ID, CODEX_THREAD_ID);
 const CODEX_THREAD_KEY = scopedThreadKey(CODEX_THREAD_REF);
+const KIMI_THREAD_ID = ThreadId.make("thread-kimi-traits");
+const KIMI_THREAD_REF = scopeThreadRef(LOCAL_ENVIRONMENT_ID, KIMI_THREAD_ID);
+const KIMI_THREAD_KEY = scopedThreadKey(KIMI_THREAD_REF);
 const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
   {
     provider: "codex",
@@ -113,6 +117,31 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
       {
         slug: "claude-haiku-4-5",
         name: "Claude Haiku 4.5",
+        isCustom: false,
+        capabilities: {
+          reasoningEffortLevels: [],
+          supportsFastMode: false,
+          supportsThinkingToggle: true,
+          contextWindowOptions: [],
+          promptInjectedEffortLevels: [],
+        },
+      },
+    ],
+  },
+  {
+    provider: "kimi",
+    enabled: true,
+    installed: true,
+    version: "0.1.0",
+    status: "ready",
+    auth: { status: "authenticated" },
+    checkedAt: "2026-01-01T00:00:00.000Z",
+    slashCommands: [],
+    skills: [],
+    models: [
+      {
+        slug: "kimi-code/kimi-for-coding",
+        name: "Kimi for Coding",
         isCustom: false,
         capabilities: {
           reasoningEffortLevels: [],
@@ -433,6 +462,106 @@ async function mountCodexPicker(props: { model?: string; options?: CodexModelOpt
     cleanup,
   };
 }
+
+// ── Kimi TraitsPicker tests ───────────────────────────────────────────
+
+async function mountKimiPicker(props: { model?: string; options?: KimiModelOptions }) {
+  const model = props.model ?? DEFAULT_MODEL_BY_PROVIDER.kimi;
+  const draftsByThreadKey: Record<string, ComposerThreadDraftState> = {
+    [KIMI_THREAD_KEY]: {
+      prompt: "",
+      images: [],
+      nonPersistedImageIds: [],
+      persistedAttachments: [],
+      terminalContexts: [],
+      modelSelectionByProvider: {
+        kimi: {
+          provider: "kimi",
+          model,
+          ...(props.options ? { options: props.options } : {}),
+        },
+      },
+      activeProvider: "kimi",
+      runtimeMode: null,
+      interactionMode: null,
+    },
+  };
+
+  useComposerDraftStore.setState({
+    draftsByThreadKey,
+    draftThreadsByThreadKey: {},
+    logicalProjectDraftThreadKeyByLogicalProjectKey: {},
+  });
+  const host = document.createElement("div");
+  document.body.append(host);
+  const screen = await render(
+    <TraitsPicker
+      provider="kimi"
+      models={TEST_PROVIDERS[2]!.models}
+      threadRef={KIMI_THREAD_REF}
+      model={props.model ?? DEFAULT_MODEL_BY_PROVIDER.kimi}
+      prompt=""
+      modelOptions={props.options}
+      onPromptChange={() => {}}
+    />,
+    { container: host },
+  );
+
+  const cleanup = async () => {
+    await screen.unmount();
+    host.remove();
+  };
+
+  return {
+    [Symbol.asyncDispose]: cleanup,
+    cleanup,
+  };
+}
+
+describe("TraitsPicker (Kimi)", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+    localStorage.removeItem(COMPOSER_DRAFT_STORAGE_KEY);
+    useComposerDraftStore.setState({
+      draftsByThreadKey: {},
+      draftThreadsByThreadKey: {},
+      logicalProjectDraftThreadKeyByLogicalProjectKey: {},
+      stickyModelSelectionByProvider: {},
+    });
+  });
+
+  it("shows a thinking on/off dropdown for Kimi", async () => {
+    await using _ = await mountKimiPicker({
+      options: { thinking: true },
+    });
+
+    await vi.waitFor(() => {
+      expect(document.body.textContent ?? "").toContain("Thinking On");
+    });
+    await page.getByRole("button").click();
+
+    await vi.waitFor(() => {
+      const text = document.body.textContent ?? "";
+      expect(text).toContain("Thinking");
+      expect(text).toContain("On (default)");
+      expect(text).toContain("Off");
+    });
+  });
+
+  it("persists sticky kimi model options when thinking is turned off", async () => {
+    await using _ = await mountKimiPicker({
+      options: { thinking: true },
+    });
+
+    await page.getByRole("button").click();
+    await page.getByRole("menuitemradio", { name: "Off" }).click();
+
+    expect(useComposerDraftStore.getState().stickyModelSelectionByProvider.kimi).toMatchObject({
+      provider: "kimi",
+      options: { thinking: false },
+    });
+  });
+});
 
 describe("TraitsPicker (Codex)", () => {
   afterEach(() => {

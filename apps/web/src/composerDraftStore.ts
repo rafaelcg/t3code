@@ -528,7 +528,7 @@ function shouldRemoveDraft(draft: ComposerThreadDraftState): boolean {
 }
 
 function normalizeProviderKind(value: unknown): ProviderKind | null {
-  return value === "codex" || value === "claudeAgent" ? value : null;
+  return value === "codex" || value === "claudeAgent" || value === "kimi" ? value : null;
 }
 
 function normalizeProviderModelOptions(
@@ -544,6 +544,10 @@ function normalizeProviderModelOptions(
   const claudeCandidate =
     candidate?.claudeAgent && typeof candidate.claudeAgent === "object"
       ? (candidate.claudeAgent as Record<string, unknown>)
+      : null;
+  const kimiCandidate =
+    candidate?.kimi && typeof candidate.kimi === "object"
+      ? (candidate.kimi as Record<string, unknown>)
       : null;
 
   const codexReasoningEffort: CodexReasoningEffort | undefined =
@@ -613,12 +617,25 @@ function normalizeProviderModelOptions(
         }
       : undefined;
 
-  if (!codex && !claude) {
+  const kimiThinking =
+    kimiCandidate?.thinking === true ? true : kimiCandidate?.thinking === false ? false : undefined;
+  const kimiFastMode =
+    kimiCandidate?.fastMode === true ? true : kimiCandidate?.fastMode === false ? false : undefined;
+  const kimi =
+    kimiThinking !== undefined || kimiFastMode !== undefined
+      ? {
+          ...(kimiThinking !== undefined ? { thinking: kimiThinking } : {}),
+          ...(kimiFastMode !== undefined ? { fastMode: kimiFastMode } : {}),
+        }
+      : undefined;
+
+  if (!codex && !claude && !kimi) {
     return null;
   }
   return {
     ...(codex ? { codex } : {}),
     ...(claude ? { claudeAgent: claude } : {}),
+    ...(kimi ? { kimi } : {}),
   };
 }
 
@@ -649,7 +666,12 @@ function normalizeModelSelection(
     provider,
     provider === "codex" ? legacy?.legacyCodex : undefined,
   );
-  const options = provider === "codex" ? modelOptions?.codex : modelOptions?.claudeAgent;
+  const options =
+    provider === "codex"
+      ? modelOptions?.codex
+      : provider === "claudeAgent"
+        ? modelOptions?.claudeAgent
+        : modelOptions?.kimi;
   return {
     provider,
     model,
@@ -715,7 +737,7 @@ function legacyToModelSelectionByProvider(
   const result: Partial<Record<ProviderKind, ModelSelection>> = {};
   // Add entries from the options bag (for non-active providers)
   if (modelOptions) {
-    for (const provider of ["codex", "claudeAgent"] as const) {
+    for (const provider of ["codex", "claudeAgent", "kimi"] as const) {
       const options = modelOptions[provider];
       if (options && Object.keys(options).length > 0) {
         result[provider] = {
@@ -2253,7 +2275,7 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
             }
             const base = existing ?? createEmptyThreadDraft();
             const nextMap = { ...base.modelSelectionByProvider };
-            for (const provider of ["codex", "claudeAgent"] as const) {
+            for (const provider of ["codex", "claudeAgent", "kimi"] as const) {
               // Only touch providers explicitly present in the input
               if (!normalizedOpts || !(provider in normalizedOpts)) continue;
               const opts = normalizedOpts[provider];

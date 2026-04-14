@@ -1,0 +1,56 @@
+diff --git a/dist/schema.cjs b/dist/schema.cjs
+index 1ce55c2b2f7cd3cef57b1d90787792a0c526be42..4cd49fc456bc20e4117068bfa17a1a51294e3310 100644
+--- a/dist/schema.cjs
++++ b/dist/schema.cjs
+@@ -351,7 +351,8 @@ var EventSchemas = {
+   ToolCallPart: ToolCallPartSchema,
+   ToolResult: ToolResultSchema,
+   ApprovalResponse: ApprovalResponseEventSchema,
+-  SteerInput: SteerInputSchema
++  SteerInput: SteerInputSchema,
++  PlanDisplay: EmptyPayloadSchema,
+ };
+ var RequestSchemas = {
+   ApprovalRequest: ApprovalRequestPayloadSchema,
+diff --git a/dist/schema.d.mts b/dist/schema.d.mts
+index c46306eeaea214fa457ddef422d0a26e226a4bae..9e0bea51b198099e8bf056b91b6956e2e17f3caa 100644
+--- a/dist/schema.d.mts
++++ b/dist/schema.d.mts
+@@ -2155,6 +2155,9 @@ type WireEvent = {
+ } | {
+     type: "ApprovalResponse";
+     payload: ApprovalResponseEvent;
++} | {
++    type: "PlanDisplay";
++    payload: {};
+ } | {
+     type: "ParseError";
+     payload: ParseErrorPayload;
+diff --git a/dist/schema.d.ts b/dist/schema.d.ts
+index c46306eeaea214fa457ddef422d0a26e226a4bae..9e0bea51b198099e8bf056b91b6956e2e17f3caa 100644
+--- a/dist/schema.d.ts
++++ b/dist/schema.d.ts
+@@ -2155,6 +2155,9 @@ type WireEvent = {
+ } | {
+     type: "ApprovalResponse";
+     payload: ApprovalResponseEvent;
++} | {
++    type: "PlanDisplay";
++    payload: {};
+ } | {
+     type: "ParseError";
+     payload: ParseErrorPayload;
+diff --git a/dist/schema.mjs b/dist/schema.mjs
+index 924b48413623b5678635f972dea746e5643bc0f8..ab43fe6840df56dec12f70946cc53c37d61f9aff 100644
+--- a/dist/schema.mjs
++++ b/dist/schema.mjs
+@@ -349,7 +349,8 @@ var EventSchemas = {
+   ToolCallPart: ToolCallPartSchema,
+   ToolResult: ToolResultSchema,
+   ApprovalResponse: ApprovalResponseEventSchema,
+-  SteerInput: SteerInputSchema
++  SteerInput: SteerInputSchema,
++  PlanDisplay: EmptyPayloadSchema,
+ };
+ var RequestSchemas = {
+   ApprovalRequest: ApprovalRequestPayloadSchema,

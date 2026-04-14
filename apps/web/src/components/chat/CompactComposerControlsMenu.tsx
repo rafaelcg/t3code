@@ -1,4 +1,4 @@
-import { ProviderInteractionMode, RuntimeMode } from "@t3tools/contracts";
+import { ProviderInteractionMode, ProviderKind, RuntimeMode } from "@t3tools/contracts";
 import { memo, type ReactNode } from "react";
 import { EllipsisIcon, ListTodoIcon } from "lucide-react";
 import { Button } from "../ui/button";
@@ -14,6 +14,7 @@ import {
 
 export const CompactComposerControlsMenu = memo(function CompactComposerControlsMenu(props: {
   activePlan: boolean;
+  provider: ProviderKind;
   interactionMode: ProviderInteractionMode;
   planSidebarOpen: boolean;
   runtimeMode: RuntimeMode;
@@ -64,7 +65,9 @@ export const CompactComposerControlsMenu = memo(function CompactComposerControls
           }}
         >
           <MenuRadioItem value="approval-required">Supervised</MenuRadioItem>
-          <MenuRadioItem value="auto-accept-edits">Auto-accept edits</MenuRadioItem>
+          {props.provider !== "kimi" && (
+            <MenuRadioItem value="auto-accept-edits">Auto-accept edits</MenuRadioItem>
+          )}
           <MenuRadioItem value="full-access">Full access</MenuRadioItem>
         </MenuRadioGroup>
         {props.activePlan ? (

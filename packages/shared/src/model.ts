@@ -4,6 +4,7 @@ import {
   type ClaudeCodeEffort,
   type ClaudeModelOptions,
   type CodexModelOptions,
+  type KimiModelOptions,
   type ModelCapabilities,
   type ModelSelection,
   type ProviderKind,
@@ -117,6 +118,19 @@ export function normalizeClaudeModelOptionsWithCapabilities(
   return Object.keys(nextOptions).length > 0 ? nextOptions : undefined;
 }
 
+export function normalizeKimiModelOptionsWithCapabilities(
+  caps: ModelCapabilities,
+  modelOptions: KimiModelOptions | null | undefined,
+): KimiModelOptions | undefined {
+  const thinking = caps.supportsThinkingToggle ? modelOptions?.thinking : undefined;
+  const fastMode = caps.supportsFastMode ? modelOptions?.fastMode : undefined;
+  const nextOptions: KimiModelOptions = {
+    ...(thinking !== undefined ? { thinking } : {}),
+    ...(fastMode !== undefined ? { fastMode } : {}),
+  };
+  return Object.keys(nextOptions).length > 0 ? nextOptions : undefined;
+}
+
 export function isClaudeUltrathinkPrompt(text: string | null | undefined): boolean {
   return typeof text === "string" && /\bultrathink\b/i.test(text);
 }
@@ -217,6 +231,7 @@ export function resolveApiModelId(modelSelection: ModelSelection): string {
           return modelSelection.model;
       }
     }
+    case "kimi":
     default: {
       return modelSelection.model;
     }

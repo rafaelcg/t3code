@@ -1,6 +1,7 @@
 import {
   type ClaudeModelOptions,
   type CodexModelOptions,
+  type KimiModelOptions,
   type ProviderKind,
   type ProviderModelOptions,
   type ScopedThreadRef,
@@ -53,7 +54,10 @@ function getRawEffort(
   if (provider === "codex") {
     return trimOrNull((modelOptions as CodexModelOptions | undefined)?.reasoningEffort);
   }
-  return trimOrNull((modelOptions as ClaudeModelOptions | undefined)?.effort);
+  if (provider === "claudeAgent") {
+    return trimOrNull((modelOptions as ClaudeModelOptions | undefined)?.effort);
+  }
+  return null;
 }
 
 function getRawContextWindow(
@@ -74,7 +78,10 @@ function buildNextOptions(
   if (provider === "codex") {
     return { ...(modelOptions as CodexModelOptions | undefined), ...patch } as CodexModelOptions;
   }
-  return { ...(modelOptions as ClaudeModelOptions | undefined), ...patch } as ClaudeModelOptions;
+  if (provider === "claudeAgent") {
+    return { ...(modelOptions as ClaudeModelOptions | undefined), ...patch } as ClaudeModelOptions;
+  }
+  return { ...(modelOptions as KimiModelOptions | undefined), ...patch } as KimiModelOptions;
 }
 
 function getSelectedTraits(
@@ -98,7 +105,7 @@ function getSelectedTraits(
 
   // Thinking toggle (only for models that support it)
   const thinkingEnabled = caps.supportsThinkingToggle
-    ? ((modelOptions as ClaudeModelOptions | undefined)?.thinking ?? true)
+    ? ((modelOptions as ClaudeModelOptions | KimiModelOptions | undefined)?.thinking ?? true)
     : null;
 
   // Fast mode
